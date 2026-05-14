@@ -1,3 +1,0 @@
-# UDP Windows-to-WSL Port Bridge
-# No external dependencies required - uses only Python standard library
-# Python 3.8+ required (for asyncio.run, dataclasses, typing features)

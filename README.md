@@ -91,7 +91,7 @@ idle session cleanup, graceful shutdown, stale transport handling, and all CLI e
 wsl -e bash -c "nc -u -l -p 5060"
 
 # Terminal 2 (Windows): Start the bridge
-python -m udp_win_wsl_bridge --log-level DEBUG
+uv run udp-bridge --log-level DEBUG
 
 # Terminal 3 (Windows): Send a test packet
 python -c "import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.sendto(b'Hello WSL!', ('127.0.0.1', 5060))"
@@ -189,36 +189,33 @@ sequenceDiagram
 ### Requirements
 
 - **Python 3.8+**
+- **[uv](https://docs.astral.sh/uv/)** — fast Python package manager (`pip install uv` or see [uv docs](https://docs.astral.sh/uv/getting-started/installation/))
 - **Windows 10/11** with WSL2 installed
 - **A WSL instance** running the UDP service you want to bridge to
 
-### Quick Start (no install needed)
+### Quick Start
 
 ```powershell
 # Clone the repository
 git clone https://github.com/astralborn/WindowsWslPortBridge.git
 cd WindowsWslPortBridge
 
-# Run directly — no pip install required
-python -m udp_win_wsl_bridge
-```
+# Set up the environment and install the package
+uv sync
 
-### Install as a Package (gives you the `udp-bridge` command)
-
-```powershell
-pip install -e .
-udp-bridge --help
+# Run the bridge
+uv run udp-bridge
 ```
 
 ### Install with dev dependencies (for running tests and linting)
 
 ```powershell
-pip install -e .[dev]
+uv sync --extra dev
 ```
 
-### No External Dependencies
+### No External Runtime Dependencies
 
-This bridge uses only Python standard library modules — no `pip install` required to run!
+This bridge uses only Python standard library modules — no third-party packages are needed at runtime.
 
 ### Project Structure
 
@@ -227,8 +224,8 @@ WindowsWslPortBridge/
 ├── .gitignore
 ├── LICENSE
 ├── README.md
-├── requirements.txt
 ├── pyproject.toml
+├── uv.lock                             ← pinned dependency lockfile
 ├── docs/
 │   └── images/
 │       └── architecture.svg        ← component diagram
@@ -257,38 +254,31 @@ WindowsWslPortBridge/
 ### Basic Usage
 
 ```powershell
-# From inside the WindowsWslPortBridge\ folder
-python -m udp_win_wsl_bridge
-```
-
-You can also run the file directly from anywhere:
-
-```powershell
-python C:\path\to\udp_win_wsl_bridge\__main__.py
+uv run udp-bridge
 ```
 
 ### Custom WSL IP
 
 ```powershell
-python -m udp_win_wsl_bridge --wsl-host 172.25.224.1
+uv run udp-bridge --wsl-host 172.25.224.1
 ```
 
 ### Custom Ports
 
 ```powershell
-python -m udp_win_wsl_bridge --listen-port 9000 --wsl-port 9000
+uv run udp-bridge --listen-port 9000 --wsl-port 9000
 ```
 
 ### Advanced Configuration
 
 ```powershell
-python -m udp_win_wsl_bridge --listen-port 5060 --wsl-port 5060 --timeout 30 --max-sessions 5000 --log-level INFO
+uv run udp-bridge --listen-port 5060 --wsl-port 5060 --timeout 30 --max-sessions 5000 --log-level INFO
 ```
 
 ### Debug Mode
 
 ```powershell
-python -m udp_win_wsl_bridge --log-level DEBUG
+uv run udp-bridge --log-level DEBUG
 ```
 
 ### All Parameters
@@ -338,20 +328,20 @@ packets are flushed, and final statistics are printed.
 ## 🧪 Running Tests
 
 ```powershell
-# Install dev dependencies first
-pip install -e .[dev]
+# Install dev dependencies first (if not already done)
+uv sync --extra dev
 
 # Run all tests
-pytest
+uv run pytest
 
 # Run with verbose output
-pytest -v
+uv run pytest -v
 
 # Run a specific test file
-pytest tests/test_service.py
-pytest tests/test_protocols.py
-pytest tests/test_cli.py
-pytest tests/test_config_and_utils.py
+uv run pytest tests/test_service.py
+uv run pytest tests/test_protocols.py
+uv run pytest tests/test_cli.py
+uv run pytest tests/test_config_and_utils.py
 ```
 
 ### Test Suite Coverage
@@ -409,20 +399,17 @@ netstat -ano | findstr :5060
 taskkill /PID 1234 /F
 
 # Or use a different port
-python -m udp_win_wsl_bridge --listen-port 5061
+uv run udp-bridge --listen-port 5061
 ```
 
 ### "ImportError: attempted relative import with no known parent package"
 
 You ran `python __main__.py` from inside the `udp_win_wsl_bridge\` folder.
-Run from the **parent** folder instead:
+Use `uv run` from the project root instead:
 
 ```powershell
 # Correct — from WindowsWslPortBridge\
-python -m udp_win_wsl_bridge
-
-# Also works — full path to the file
-python C:\path\to\udp_win_wsl_bridge\__main__.py
+uv run udp-bridge
 ```
 
 ### "WSL hostname command timed out" / auto-detect fails
@@ -432,26 +419,26 @@ python C:\path\to\udp_win_wsl_bridge\__main__.py
 wsl hostname -I
 
 # Pass it explicitly
-python -m udp_win_wsl_bridge --wsl-host 172.25.224.1
+uv run udp-bridge --wsl-host 172.25.224.1
 ```
 
 ### "Session limit reached"
 
 ```powershell
-python -m udp_win_wsl_bridge --max-sessions 5000 --log-level DEBUG
+uv run udp-bridge --max-sessions 5000 --log-level DEBUG
 ```
 
 ### "Failed to create session after N attempts"
 
 ```powershell
 # Increase retries and make sure your WSL service is running first
-python -m udp_win_wsl_bridge --retry-attempts 5 --retry-delay 2.0
+uv run udp-bridge --retry-attempts 5 --retry-delay 2.0
 ```
 
 ### General debugging
 
 ```powershell
-python -m udp_win_wsl_bridge --log-level DEBUG
+uv run udp-bridge --log-level DEBUG
 ```
 
 ------------------------------------------------------------------------
@@ -474,8 +461,15 @@ Contributions, issues, and feature requests are welcome!
 ```powershell
 git clone https://github.com/astralborn/WindowsWslPortBridge.git
 cd WindowsWslPortBridge
-pip install -e .[dev]
-pytest
+uv sync --extra dev
+uv run pytest
+```
+
+### Linting & Type Checking
+
+```powershell
+uv run ruff check .
+uv run ty check udp_win_wsl_bridge
 ```
 
 ### Submitting Changes

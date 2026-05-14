@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "udp-win-wsl-bridge"
@@ -32,7 +32,7 @@ keywords = ["udp", "wsl", "bridge", "networking", "proxy"]
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21",
-    "mypy>=1.0",
+    "ty",
     "ruff>=0.1",
 ]
 
@@ -44,15 +44,8 @@ Homepage = "https://github.com/stanisln/WindowsWslPortBridge"
 Repository = "https://github.com/stanisln/WindowsWslPortBridge"
 Issues = "https://github.com/stanisln/WindowsWslPortBridge/issues"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["udp_win_wsl_bridge*"]
-
-[tool.mypy]
-python_version = "3.8"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
+[tool.hatch.build.targets.wheel]
+packages = ["udp_win_wsl_bridge"]
 
 [tool.ruff]
 line-length = 100
