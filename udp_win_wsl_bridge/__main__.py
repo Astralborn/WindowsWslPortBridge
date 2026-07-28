@@ -29,6 +29,7 @@ The WSL IP address can be specified manually or auto-detected using
 """
 
 import asyncio
+import logging
 import os
 import signal
 import sys
@@ -61,13 +62,15 @@ async def main() -> None:
     :return: None
     """
     from .cli import create_config_from_args, parse_args
-    from .logging_utils import log, setup_logging
+    from .logging_utils import setup_logging
     from .service import UDPBridgeService
 
     args = parse_args()
 
     # Setup logging
     setup_logging(args.log_level)
+
+    logger = logging.getLogger(__name__)
 
     # Create and validate config
     config = create_config_from_args(args)
@@ -82,10 +85,10 @@ async def main() -> None:
         retry_delay=config.retry_delay,
     )
 
-    log(f"Starting UDP bridge: {config.listen_port} -> {config.wsl_host}:{config.wsl_port}")
+    logger.info("Starting UDP bridge: %d -> %s:%d", config.listen_port, config.wsl_host, config.wsl_port)
 
     def _request_shutdown(sig: int, _frame: object) -> None:
-        log(f"Received signal {sig}, shutting down…")
+        logger.info("Received signal %d, shutting down…", sig)
         service.shutdown()
 
     signal.signal(signal.SIGINT, _request_shutdown)
@@ -97,13 +100,13 @@ async def main() -> None:
         await service.start()
     except OSError as exc:
         if sys.platform == "win32" and getattr(exc, "winerror", None) == 10048:
-            log(f"Port {config.listen_port} is already in use. Check if another instance is running.", "ERROR")
+            logger.error("Port %d is already in use. Check if another instance is running.", config.listen_port)
         else:
-            log(f"OS error: {exc}", "ERROR")
+            logger.error("OS error: %s", exc)
     except asyncio.CancelledError:
-        log("Service cancelled")
+        logger.info("Service cancelled")
     except Exception as exc:
-        log(f"Unexpected error: {exc}", "ERROR")
+        logger.error("Unexpected error: %s", exc)
         raise
     finally:
         await service.async_shutdown()

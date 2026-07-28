@@ -16,6 +16,14 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
 
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --dev
+      - run: uv run ty check
+
   test:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -28,4 +36,4 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --dev
-      - run: uv run pytest --tb=short -q
+      - run: uv run pytest --cov --cov-report=term-missing --tb=short -q

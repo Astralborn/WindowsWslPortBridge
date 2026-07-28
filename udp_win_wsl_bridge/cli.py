@@ -2,11 +2,13 @@
 
 import argparse
 import ipaddress
+import logging
 import sys
 
 from .config import BridgeConfig
-from .logging_utils import log
 from .utils import detect_wsl_ip
+
+logger = logging.getLogger(__name__)
 
 
 def parse_args() -> argparse.Namespace:
@@ -81,11 +83,11 @@ def create_config_from_args(args: argparse.Namespace) -> BridgeConfig:
             try:
                 ipaddress.ip_address(wsl_host)
             except ValueError:
-                log(f"Invalid WSL host IP address: {wsl_host!r}", "ERROR")
+                logger.error("Invalid WSL host IP address: %r", wsl_host)
                 sys.exit(1)
         else:
             wsl_host = detect_wsl_ip()  # Raises RuntimeError on failure
-            log(f"Auto-detected WSL IP: {wsl_host}")
+            logger.info("Auto-detected WSL IP: %s", wsl_host)
 
         config = BridgeConfig(
             wsl_host=wsl_host,
@@ -101,9 +103,9 @@ def create_config_from_args(args: argparse.Namespace) -> BridgeConfig:
         return config
 
     except RuntimeError as exc:
-        log(f"Configuration error: {exc}", "ERROR")
+        logger.error("Configuration error: %s", exc)
         sys.exit(1)
     except ValueError as exc:
-        log(f"Invalid configuration value: {exc}", "ERROR")
+        logger.error("Invalid configuration value: %s", exc)
         sys.exit(1)
 

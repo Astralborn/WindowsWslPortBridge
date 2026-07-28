@@ -1,11 +1,13 @@
 """UDP Bridge Service implementation."""
 
 import asyncio
+import logging
 import time
 
-from .logging_utils import log
 from .models import ClientAddr, ClientSession
 from .protocols import UDPBridgeProtocol, WSLProtocol
+
+logger = logging.getLogger(__name__)
 
 
 class UDPBridgeService:
@@ -90,18 +92,18 @@ class UDPBridgeService:
         """
         # Guard: bridge_transport must be ready before we can relay responses.
         if self.bridge_transport is None:
-            log(f"Bridge transport not ready, dropping packet from {client}", "WARNING")
+            logger.warning("Bridge transport not ready, dropping packet from %s", client)
             return
 
         if len(self.sessions) >= self.max_sessions and client not in self.sessions:
-            log(f"Session limit reached ({self.max_sessions}), rejecting {client}", "WARNING")
+            logger.warning("Session limit reached (%d), rejecting %s", self.max_sessions, client)
             return
 
         if client not in self.sessions:
             # Guard against concurrent packets from the same new client both
             # triggering _create_session simultaneously, which would leak a session.
             if client in self._creating:
-                log(f"Session creation in progress for {client}, dropping packet", "DEBUG")
+                logger.debug("Session creation in progress for %s, dropping packet", client)
                 return
             self._creating.add(client)
             try:
@@ -112,7 +114,7 @@ class UDPBridgeService:
                 return
             self.sessions[client] = session
             self.total_sessions_created += 1
-            log(f"Session created: {client} (total: {self.total_sessions_created})")
+            logger.info("Session created: %s (total: %d)", client, self.total_sessions_created)
 
         session = self.sessions[client]
         try:
@@ -120,9 +122,9 @@ class UDPBridgeService:
             session.transport.sendto(data)
             session.packets_forwarded += 1
             self.total_packets_forwarded += 1
-            log(f"{client} -> WSL ({len(data)} bytes)", "DEBUG")
+            logger.debug("%s -> WSL (%d bytes)", client, len(data))
         except Exception as exc:
-            log(f"Failed to forward packet from {client}: {exc}", "ERROR")
+            logger.error("Failed to forward packet from %s: %s", client, exc)
             await self._cleanup_session(client)
 
     async def _create_session(self, client: ClientAddr) -> ClientSession | None:
@@ -131,26 +133,25 @@ class UDPBridgeService:
         :param client: Client address tuple
         :return: ClientSession on success, None on failure
         """
-        assert self.bridge_transport is not None, "bridge_transport must be set before creating sessions"
+        if self.bridge_transport is None:
+            raise RuntimeError("bridge_transport must be set before creating sessions")
         for attempt in range(self.retry_attempts):
             try:
                 transport, protocol = await asyncio.get_running_loop().create_datagram_endpoint(
-                    lambda c=client: WSLProtocol(c, self.bridge_transport, self),
+                    lambda: WSLProtocol(client, self.bridge_transport, self),
                     remote_addr=(self.wsl_host, self.wsl_port),
                 )
                 return ClientSession(transport=transport, protocol=protocol)
             except Exception as exc:
                 if attempt == self.retry_attempts - 1:
-                    log(
-                        f"Failed to create session for {client} after "
-                        f"{self.retry_attempts} attempt(s): {exc}",
-                        "ERROR",
+                    logger.error(
+                        "Failed to create session for %s after %d attempt(s): %s",
+                        client, self.retry_attempts, exc,
                     )
                     return None
-                log(
-                    f"Session creation attempt {attempt + 1} failed for {client}: "
-                    f"{exc}, retrying in {self.retry_delay}s...",
-                    "WARNING",
+                logger.warning(
+                    "Session creation attempt %d failed for %s: %s, retrying in %ss...",
+                    attempt + 1, client, exc, self.retry_delay,
                 )
                 await asyncio.sleep(self.retry_delay)
         return None
@@ -175,11 +176,10 @@ class UDPBridgeService:
                 await asyncio.gather(*[self._cleanup_session(addr) for addr in stale])
 
             if self.sessions:
-                log(
-                    f"Active sessions: {len(self.sessions)}/{self.max_sessions}, "
-                    f"Total packets: {self.total_packets_forwarded} sent, "
-                    f"{self.total_packets_received} received",
-                    "DEBUG",
+                logger.debug(
+                    "Active sessions: %d/%d, Total packets: %d sent, %d received",
+                    len(self.sessions), self.max_sessions,
+                    self.total_packets_forwarded, self.total_packets_received,
                 )
 
     async def _cleanup_session(self, addr: ClientAddr) -> None:
@@ -191,11 +191,11 @@ class UDPBridgeService:
         session = self.sessions.pop(addr, None)
         if session is None:
             return
-        log(f"Closing session: {addr}", "DEBUG")
+        logger.debug("Closing session: %s", addr)
         try:
             session.transport.close()
         except Exception as exc:
-            log(f"Error closing session {addr}: {exc}", "WARNING")
+            logger.warning("Error closing session %s: %s", addr, exc)
 
     async def _close_all_sessions(self) -> None:
         """Close all active sessions concurrently.
@@ -215,7 +215,7 @@ class UDPBridgeService:
 
         :return: None
         """
-        log("Shutting down bridge")
+        logger.info("Shutting down bridge")
         self.shutdown_event.set()
 
         if self._cleanup_task:
@@ -244,10 +244,10 @@ class UDPBridgeService:
 
         await self._close_all_sessions()
 
-        log(
-            f"Final stats: {self.total_sessions_created} sessions created, "
-            f"{self.total_packets_forwarded} packets sent, "
-            f"{self.total_packets_received} packets received"
+        logger.info(
+            "Final stats: %d sessions created, %d packets sent, %d packets received",
+            self.total_sessions_created, self.total_packets_forwarded,
+            self.total_packets_received,
         )
 
         if self.bridge_transport:

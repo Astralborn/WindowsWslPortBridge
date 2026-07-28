@@ -1,13 +1,15 @@
 """Protocol implementations for UDP bridge."""
 
 import asyncio
+import logging
 from typing import TYPE_CHECKING
 
-from .logging_utils import log
 from .models import ClientAddr
 
 if TYPE_CHECKING:
     from .service import UDPBridgeService
+
+logger = logging.getLogger(__name__)
 
 
 class UDPBridgeProtocol(asyncio.DatagramProtocol):
@@ -29,9 +31,11 @@ class UDPBridgeProtocol(asyncio.DatagramProtocol):
         :return: None
         """
         self.transport = transport
-        log(
-            f"Listening on {transport.get_extra_info('sockname')} "
-            f"-> WSL {self.service.wsl_host}:{self.service.wsl_port}"
+        logger.info(
+            "Listening on %s -> WSL %s:%s",
+            transport.get_extra_info('sockname'),
+            self.service.wsl_host,
+            self.service.wsl_port,
         )
 
     def datagram_received(self, data: bytes, addr: ClientAddr) -> None:
@@ -53,7 +57,7 @@ class UDPBridgeProtocol(asyncio.DatagramProtocol):
         :param exc: Exception that occurred
         :return: None
         """
-        log(f"Bridge socket error: {exc}", "ERROR")
+        logger.error("Bridge socket error: %s", exc)
 
 
 class WSLProtocol(asyncio.DatagramProtocol):
@@ -97,7 +101,7 @@ class WSLProtocol(asyncio.DatagramProtocol):
         :return: None
         """
         if exc:
-            log(f"Connection lost for {self.client_addr}: {exc}", "WARNING")
+            logger.warning("Connection lost for %s: %s", self.client_addr, exc)
 
     def datagram_received(self, data: bytes, addr: ClientAddr) -> None:
         """Handle response from WSL service.
@@ -111,7 +115,7 @@ class WSLProtocol(asyncio.DatagramProtocol):
         """
         bridge_transport = self.service.bridge_transport
         if bridge_transport is None or bridge_transport.is_closing():
-            log(f"Bridge transport unavailable, dropping WSL response for {self.client_addr}", "WARNING")
+            logger.warning("Bridge transport unavailable, dropping WSL response for %s", self.client_addr)
             return
 
         session = self.service.sessions.get(self.client_addr)
@@ -121,7 +125,7 @@ class WSLProtocol(asyncio.DatagramProtocol):
             self.service.total_packets_received += 1
 
         bridge_transport.sendto(data, self.client_addr)
-        log(f"WSL -> {self.client_addr} ({len(data)} bytes)", "DEBUG")
+        logger.debug("WSL -> %s (%d bytes)", self.client_addr, len(data))
 
     def error_received(self, exc: Exception) -> None:
         """Handle WSL session error.
@@ -129,5 +133,5 @@ class WSLProtocol(asyncio.DatagramProtocol):
         :param exc: Exception that occurred
         :return: None
         """
-        log(f"WSL session error {self.client_addr}: {exc}", "ERROR")
+        logger.error("WSL session error %s: %s", self.client_addr, exc)
 
