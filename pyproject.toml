@@ -40,9 +40,9 @@ dev = [
 udp-bridge = "udp_win_wsl_bridge.__main__:run"
 
 [project.urls]
-Homepage = "https://github.com/stanisln/WindowsWslPortBridge"
-Repository = "https://github.com/stanisln/WindowsWslPortBridge"
-Issues = "https://github.com/stanisln/WindowsWslPortBridge/issues"
+Homepage = "https://github.com/astralborn/WindowsWslPortBridge"
+Repository = "https://github.com/astralborn/WindowsWslPortBridge"
+Issues = "https://github.com/astralborn/WindowsWslPortBridge/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["udp_win_wsl_bridge"]
