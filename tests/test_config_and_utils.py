@@ -2,6 +2,11 @@
 
 import logging
 import subprocess
+
+# ---------------------------------------------------------------------------
+# BridgeConfig.validate
+# ---------------------------------------------------------------------------
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -10,13 +15,9 @@ from udp_win_wsl_bridge.config import BridgeConfig
 from udp_win_wsl_bridge.logging_utils import setup_logging
 from udp_win_wsl_bridge.utils import detect_wsl_ip
 
-# ---------------------------------------------------------------------------
-# BridgeConfig.validate
-# ---------------------------------------------------------------------------
 
-
-def make_valid_config(**overrides) -> BridgeConfig:
-    defaults = {
+def make_valid_config(**overrides: Any) -> BridgeConfig:
+    defaults: dict[str, Any] = {
         "wsl_host": "127.0.0.1",
         "listen_port": 5060,
         "wsl_port": 5060,
@@ -26,7 +27,7 @@ def make_valid_config(**overrides) -> BridgeConfig:
         "retry_delay": 1.0,
     }
     defaults.update(overrides)
-    return BridgeConfig(**defaults)
+    return BridgeConfig(**defaults)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize("port_field", ["listen_port", "wsl_port"])

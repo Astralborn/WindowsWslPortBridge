@@ -100,7 +100,7 @@ async def test_forward_allows_existing_client_at_limit():
 
     await svc.forward_to_wsl(b"hello", existing)
 
-    session.transport.sendto.assert_called_once_with(b"hello")
+    session.transport.sendto.assert_called_once_with(b"hello")  # type: ignore[union-attr]
     assert svc.total_packets_forwarded == 1
 
 
@@ -205,7 +205,7 @@ async def test_cleanup_session_removes_and_closes():
     await svc._cleanup_session(addr)
 
     assert addr not in svc.sessions
-    session.transport.close.assert_called_once()
+    session.transport.close.assert_called_once()  # type: ignore[union-attr]
 
 
 @pytest.mark.asyncio
@@ -239,7 +239,7 @@ async def test_cleanup_loop_removes_stale_sessions():
     await asyncio.wait_for(task, timeout=1.0)
 
     assert addr not in svc.sessions
-    stale_session.transport.close.assert_called_once()
+    stale_session.transport.close.assert_called_once()  # type: ignore[union-attr]
 
 
 # ---------------------------------------------------------------------------
@@ -268,7 +268,7 @@ async def test_cleanup_loop_keeps_active_sessions():
 
     # The session must still be present — it was not stale
     assert addr in svc.sessions
-    active_session.transport.close.assert_not_called()
+    active_session.transport.close.assert_not_called()  # type: ignore[union-attr]
 
 
 @pytest.mark.asyncio

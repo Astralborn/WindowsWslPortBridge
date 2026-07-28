@@ -15,13 +15,14 @@ async def test_end_to_end_packet_round_trip():
 
     class EchoProtocol(asyncio.DatagramProtocol):
         def __init__(self):
-            self.transport = None
+            self.transport: asyncio.DatagramTransport | None = None
 
         def connection_made(self, transport):
             self.transport = transport
 
         def datagram_received(self, data, addr):
-            self.transport.sendto(data, addr)
+            if self.transport is not None:
+                self.transport.sendto(data, addr)
             echo_received.set()
 
     loop = asyncio.get_running_loop()

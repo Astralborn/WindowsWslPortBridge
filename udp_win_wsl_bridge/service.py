@@ -135,10 +135,11 @@ class UDPBridgeService:
         """
         if self.bridge_transport is None:
             raise RuntimeError("bridge_transport must be set before creating sessions")
+        bridge_transport = self.bridge_transport
         for attempt in range(self.retry_attempts):
             try:
                 transport, protocol = await asyncio.get_running_loop().create_datagram_endpoint(
-                    lambda: WSLProtocol(client, self.bridge_transport, self),
+                    lambda: WSLProtocol(client, bridge_transport, self),
                     remote_addr=(self.wsl_host, self.wsl_port),
                 )
                 return ClientSession(transport=transport, protocol=protocol)
