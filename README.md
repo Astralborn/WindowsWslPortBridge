@@ -188,7 +188,7 @@ sequenceDiagram
 
 ### Requirements
 
-- **Python 3.8+**
+- **Python 3.10+**
 - **[uv](https://docs.astral.sh/uv/)** — fast Python package manager (`pip install uv` or see [uv docs](https://docs.astral.sh/uv/getting-started/installation/))
 - **Windows 10/11** with WSL2 installed
 - **A WSL instance** running the UDP service you want to bridge to
@@ -210,7 +210,7 @@ uv run udp-bridge
 ### Install with dev dependencies (for running tests and linting)
 
 ```powershell
-uv sync --extra dev
+uv sync --dev
 ```
 
 ### No External Runtime Dependencies
@@ -221,28 +221,33 @@ This bridge uses only Python standard library modules — no third-party package
 
 ```
 WindowsWslPortBridge/
+├── .github/workflows/ci.yml        ← CI pipeline (lint, typecheck, test)
+├── .pre-commit-config.yaml         ← pre-commit hooks (ruff)
 ├── .gitignore
+├── AGENTS.md                       ← AI agent instructions
 ├── LICENSE
 ├── README.md
 ├── pyproject.toml
-├── uv.lock                             ← pinned dependency lockfile
+├── uv.lock                         ← pinned dependency lockfile
 ├── docs/
 │   └── images/
 │       └── architecture.svg        ← component diagram
-├── tests/                          ← test suite
-│   ├── __init__.py
+├── tests/                          ← test suite (73 tests, 96% coverage)
 │   ├── test_cli.py                 # CLI argument parsing & config creation
 │   ├── test_config_and_utils.py    # BridgeConfig validation, detect_wsl_ip, logging
+│   ├── test_integration.py         # End-to-end tests with real UDP sockets
+│   ├── test_main_smoke.py          # Entry point subprocess smoke tests
 │   ├── test_protocols.py           # UDPBridgeProtocol & WSLProtocol
 │   └── test_service.py             # UDPBridgeService (session lifecycle, shutdown)
 └── udp_win_wsl_bridge/             ← installable package
-    ├── __init__.py                 # Package exports
-    ├── __main__.py                 # Entry point (supports both run modes)
+    ├── __init__.py                 # Package exports, version via importlib.metadata
+    ├── __main__.py                 # Entry point (signal handling, asyncio.run)
     ├── cli.py                      # Argument parsing
     ├── config.py                   # Configuration dataclass & validation
     ├── logging_utils.py            # Logging setup
     ├── models.py                   # ClientSession data model
     ├── protocols.py                # asyncio DatagramProtocol implementations
+    ├── py.typed                    # PEP 561 type marker
     ├── service.py                  # Main UDPBridgeService
     └── utils.py                    # WSL IP auto-detection
 ```
@@ -308,14 +313,14 @@ uv run udp-bridge --log-level DEBUG
 ### Example Output
 
 ```
-[2026-04-03 12:00:00] INFO: Starting UDP bridge: 5060 -> 172.25.224.1:5060
-[2026-04-03 12:00:00] INFO: Listening on ('0.0.0.0', 5060) -> WSL 172.25.224.1:5060
-[2026-04-03 12:00:05] INFO: Session created: ('192.168.1.100', 12345) (total: 1)
-[2026-04-03 12:00:05] DEBUG: 192.168.1.100:12345 -> WSL (42 bytes)
-[2026-04-03 12:00:05] DEBUG: WSL -> ('192.168.1.100', 12345) (42 bytes)
-[2026-04-03 12:00:15] DEBUG: Active sessions: 1/1000, Total packets: 5 sent, 5 received
-[2026-04-03 12:00:30] INFO: Shutting down bridge
-[2026-04-03 12:00:30] INFO: Final stats: 1 sessions created, 5 packets sent, 5 packets received
+[2026-04-03 12:00:00] udp_win_wsl_bridge.__main__ INFO: Starting UDP bridge: 5060 -> 172.25.224.1:5060
+[2026-04-03 12:00:00] udp_win_wsl_bridge.protocols INFO: Listening on ('0.0.0.0', 5060) -> WSL 172.25.224.1:5060
+[2026-04-03 12:00:05] udp_win_wsl_bridge.service INFO: Session created: ('192.168.1.100', 12345) (total: 1)
+[2026-04-03 12:00:05] udp_win_wsl_bridge.service DEBUG: ('192.168.1.100', 12345) -> WSL (42 bytes)
+[2026-04-03 12:00:05] udp_win_wsl_bridge.protocols DEBUG: WSL -> ('192.168.1.100', 12345) (42 bytes)
+[2026-04-03 12:00:15] udp_win_wsl_bridge.service DEBUG: Active sessions: 1/1000, Total packets: 5 sent, 5 received
+[2026-04-03 12:00:30] udp_win_wsl_bridge.service INFO: Shutting down bridge
+[2026-04-03 12:00:30] udp_win_wsl_bridge.service INFO: Final stats: 1 sessions created, 5 packets sent, 5 packets received
 ```
 
 ### Graceful Shutdown
@@ -329,30 +334,33 @@ packets are flushed, and final statistics are printed.
 
 ```powershell
 # Install dev dependencies first (if not already done)
-uv sync --extra dev
+uv sync --dev
 
-# Run all tests
-uv run pytest
+# Run all tests with coverage
+uv run pytest --cov --cov-report=term-missing
+
+# Run all tests (fast, no coverage)
+uv run pytest --tb=short -q
 
 # Run with verbose output
 uv run pytest -v
 
 # Run a specific test file
 uv run pytest tests/test_service.py
-uv run pytest tests/test_protocols.py
-uv run pytest tests/test_cli.py
-uv run pytest tests/test_config_and_utils.py
+uv run pytest tests/test_integration.py
 ```
 
 ### Test Suite Coverage
 
 | Test file | What it covers | Tests |
 |---|---|---|
-| `test_config_and_utils.py` | `BridgeConfig` validation, `detect_wsl_ip`, `setup_logging` | 21 |
-| `test_service.py` | Session lifecycle, retry logic, cleanup loop, shutdown | 25 |
+| `test_service.py` | Session lifecycle, retry logic, cleanup loop, shutdown | 26 |
+| `test_config_and_utils.py` | `BridgeConfig` validation, `detect_wsl_ip`, `setup_logging` | 23 |
 | `test_protocols.py` | `UDPBridgeProtocol` & `WSLProtocol` behaviour | 10 |
 | `test_cli.py` | Argument parsing, config creation, error exits | 8 |
-| **Total** | **All modules** | **66** |
+| `test_integration.py` | End-to-end with real UDP sockets, concurrency stress | 2 |
+| `test_main_smoke.py` | Entry point subprocess tests (`--help`, invalid args) | 2 |
+| **Total** | **96% branch coverage** | **73** |
 
 ------------------------------------------------------------------------
 
@@ -448,7 +456,6 @@ uv run udp-bridge --log-level DEBUG
 MIT License — see [LICENSE](LICENSE) for details.
 
 **Author**: Stanislav Nikolaievskyi
-**Version**: 1.0.0
 
 ------------------------------------------------------------------------
 
@@ -461,7 +468,7 @@ Contributions, issues, and feature requests are welcome!
 ```powershell
 git clone https://github.com/astralborn/WindowsWslPortBridge.git
 cd WindowsWslPortBridge
-uv sync --extra dev
+uv sync --dev
 uv run pytest
 ```
 
@@ -469,6 +476,7 @@ uv run pytest
 
 ```powershell
 uv run ruff check .
+uv run ruff format --check .
 uv run ty check udp_win_wsl_bridge
 ```
 
