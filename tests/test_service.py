@@ -450,7 +450,14 @@ async def test_async_shutdown_awaits_pending_tasks():
 
 def test_session_refresh_updates_last_active():
     session = make_mock_session()
-    before = session.last_active
-    time.sleep(0.01)
+    old_time = 1000.0
+    session.last_active = old_time
+    session.refresh(ts=old_time + 1.0)
+    assert session.last_active == old_time + 1.0
+
+
+def test_session_refresh_uses_current_time_when_no_ts():
+    session = make_mock_session()
+    session.last_active = 0.0
     session.refresh()
-    assert session.last_active > before
+    assert session.last_active > 0.0

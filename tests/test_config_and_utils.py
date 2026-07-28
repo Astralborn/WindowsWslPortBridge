@@ -119,6 +119,24 @@ def test_detect_wsl_ip_raises_on_process_error():
             detect_wsl_ip()
 
 
+def test_detect_wsl_ip_picks_first_when_multiple_valid():
+    """When WSL returns multiple valid IPs, only the first should be used."""
+    mock_result = MagicMock()
+    mock_result.stdout = "10.0.0.1 192.168.1.100 172.16.0.5\n"
+    with patch("udp_win_wsl_bridge.utils.subprocess.run", return_value=mock_result):
+        ip = detect_wsl_ip()
+    assert ip == "10.0.0.1"
+
+
+def test_detect_wsl_ip_with_single_ip():
+    """When WSL returns exactly one IP."""
+    mock_result = MagicMock()
+    mock_result.stdout = "192.168.50.2\n"
+    with patch("udp_win_wsl_bridge.utils.subprocess.run", return_value=mock_result):
+        ip = detect_wsl_ip()
+    assert ip == "192.168.50.2"
+
+
 # ---------------------------------------------------------------------------
 # setup_logging
 # ---------------------------------------------------------------------------
