@@ -2,7 +2,6 @@
 
 import asyncio
 import time
-from typing import Dict, Optional, Set
 
 from .logging_utils import log
 from .models import ClientAddr, ClientSession
@@ -40,15 +39,15 @@ class UDPBridgeService:
         self.max_sessions = max_sessions
         self.retry_attempts = retry_attempts
         self.retry_delay = retry_delay
-        self.sessions: Dict[ClientAddr, ClientSession] = {}
+        self.sessions: dict[ClientAddr, ClientSession] = {}
         self.shutdown_event = asyncio.Event()
-        self.bridge_transport: Optional[asyncio.DatagramTransport] = None
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self.bridge_transport: asyncio.DatagramTransport | None = None
+        self._cleanup_task: asyncio.Task | None = None
         # Track in-flight forwarding tasks so they can't be GC'd mid-execution.
-        self._pending_tasks: Set[asyncio.Task] = set()
+        self._pending_tasks: set[asyncio.Task] = set()
         # Clients whose session is currently being created — prevents a race
         # where two packets from the same new client both trigger _create_session.
-        self._creating: Set[ClientAddr] = set()
+        self._creating: set[ClientAddr] = set()
         self.total_sessions_created = 0
         self.total_packets_forwarded = 0
         self.total_packets_received = 0
@@ -126,7 +125,7 @@ class UDPBridgeService:
             log(f"Failed to forward packet from {client}: {exc}", "ERROR")
             await self._cleanup_session(client)
 
-    async def _create_session(self, client: ClientAddr) -> Optional[ClientSession]:
+    async def _create_session(self, client: ClientAddr) -> ClientSession | None:
         """Create a new WSL session for a client, with retry logic.
 
         :param client: Client address tuple

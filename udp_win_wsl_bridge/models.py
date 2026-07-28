@@ -2,14 +2,14 @@
 
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import asyncio
 
     from .protocols import WSLProtocol
 
-ClientAddr = Tuple[str, int]
+ClientAddr = tuple[str, int]
 
 
 @dataclass
@@ -27,7 +27,7 @@ class ClientSession:
     packets_forwarded: int = 0
     packets_received: int = 0
 
-    def refresh(self, ts: Optional[float] = None) -> None:
+    def refresh(self, ts: float | None = None) -> None:
         """Update last_active to the current time (or a provided timestamp).
 
         :param ts: Timestamp to use; defaults to :func:`time.time`.

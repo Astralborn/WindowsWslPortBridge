@@ -1,7 +1,7 @@
 """Protocol implementations for UDP bridge."""
 
 import asyncio
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from .logging_utils import log
 from .models import ClientAddr
@@ -20,7 +20,7 @@ class UDPBridgeProtocol(asyncio.DatagramProtocol):
         :return: None
         """
         self.service = service
-        self.transport: Optional[asyncio.DatagramTransport] = None
+        self.transport: asyncio.DatagramTransport | None = None
 
     def connection_made(self, transport: asyncio.DatagramTransport) -> None:
         """Called when connection is established.
@@ -80,7 +80,7 @@ class WSLProtocol(asyncio.DatagramProtocol):
         # Do NOT store bridge_transport directly — read it from the service
         # at relay time so we always use the current (non-stale) transport.
         self.service = service
-        self.transport: Optional[asyncio.DatagramTransport] = None
+        self.transport: asyncio.DatagramTransport | None = None
 
     def connection_made(self, transport: asyncio.DatagramTransport) -> None:
         """Called when connection is established.
@@ -90,7 +90,7 @@ class WSLProtocol(asyncio.DatagramProtocol):
         """
         self.transport = transport
 
-    def connection_lost(self, exc: Optional[Exception]) -> None:
+    def connection_lost(self, exc: Exception | None) -> None:
         """Called when connection is lost.
 
         :param exc: Exception that caused the loss, or None
