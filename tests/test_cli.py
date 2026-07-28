@@ -5,25 +5,24 @@ from unittest.mock import patch
 
 import pytest
 
-from udp_win_wsl_bridge.cli import parse_args, create_config_from_args
+from udp_win_wsl_bridge.cli import create_config_from_args, parse_args
 from udp_win_wsl_bridge.config import BridgeConfig
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 def make_args(**overrides) -> argparse.Namespace:
-    defaults = dict(
-        wsl_host=None,
-        listen_port=5060,
-        wsl_port=5060,
-        timeout=5.0,
-        max_sessions=1000,
-        retry_attempts=3,
-        retry_delay=1.0,
-        log_level="INFO",
-    )
+    defaults = {
+        "wsl_host": None,
+        "listen_port": 5060,
+        "wsl_port": 5060,
+        "timeout": 5.0,
+        "max_sessions": 1000,
+        "retry_attempts": 3,
+        "retry_delay": 1.0,
+        "log_level": "INFO",
+    }
     defaults.update(overrides)
     return argparse.Namespace(**defaults)
 

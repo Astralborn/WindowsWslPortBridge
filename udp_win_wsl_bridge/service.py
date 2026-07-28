@@ -4,9 +4,9 @@ import asyncio
 import time
 from typing import Dict, Optional, Set
 
+from .logging_utils import log
 from .models import ClientAddr, ClientSession
 from .protocols import UDPBridgeProtocol, WSLProtocol
-from .logging_utils import log
 
 
 class UDPBridgeService:

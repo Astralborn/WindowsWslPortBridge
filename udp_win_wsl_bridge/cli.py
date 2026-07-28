@@ -5,8 +5,8 @@ import ipaddress
 import sys
 
 from .config import BridgeConfig
-from .utils import detect_wsl_ip
 from .logging_utils import log
+from .utils import detect_wsl_ip
 
 
 def parse_args() -> argparse.Namespace:

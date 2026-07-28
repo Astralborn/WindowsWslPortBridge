@@ -1,10 +1,10 @@
 """Protocol implementations for UDP bridge."""
 
 import asyncio
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
-from .models import ClientAddr
 from .logging_utils import log
+from .models import ClientAddr
 
 if TYPE_CHECKING:
     from .service import UDPBridgeService

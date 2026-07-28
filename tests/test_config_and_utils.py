@@ -1,29 +1,29 @@
 """Tests for BridgeConfig validation and utility functions."""
 
-from unittest.mock import patch, MagicMock
+import logging
 import subprocess
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from udp_win_wsl_bridge.config import BridgeConfig
-from udp_win_wsl_bridge.utils import detect_wsl_ip
 from udp_win_wsl_bridge.logging_utils import setup_logging
-
+from udp_win_wsl_bridge.utils import detect_wsl_ip
 
 # ---------------------------------------------------------------------------
 # BridgeConfig.validate
 # ---------------------------------------------------------------------------
 
 def make_valid_config(**overrides) -> BridgeConfig:
-    defaults = dict(
-        wsl_host="127.0.0.1",
-        listen_port=5060,
-        wsl_port=5060,
-        idle_timeout=5.0,
-        max_sessions=100,
-        retry_attempts=3,
-        retry_delay=1.0,
-    )
+    defaults = {
+        "wsl_host": "127.0.0.1",
+        "listen_port": 5060,
+        "wsl_port": 5060,
+        "idle_timeout": 5.0,
+        "max_sessions": 100,
+        "retry_attempts": 3,
+        "retry_delay": 1.0,
+    }
     defaults.update(overrides)
     return BridgeConfig(**defaults)
 
@@ -122,8 +122,6 @@ def test_detect_wsl_ip_raises_on_process_error():
 # ---------------------------------------------------------------------------
 # setup_logging
 # ---------------------------------------------------------------------------
-
-import logging
 
 
 @pytest.mark.parametrize("level", ["DEBUG", "INFO", "WARNING", "ERROR"])

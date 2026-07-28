@@ -2,10 +2,11 @@
 
 import time
 from dataclasses import dataclass, field
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Tuple
 
 if TYPE_CHECKING:
     import asyncio
+
     from .protocols import WSLProtocol
 
 ClientAddr = Tuple[str, int]
