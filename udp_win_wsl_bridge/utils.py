@@ -29,4 +29,3 @@ def detect_wsl_ip() -> str:
         raise RuntimeError("WSL hostname command timed out") from exc
     except (subprocess.CalledProcessError, ValueError) as exc:
         raise RuntimeError(f"Failed to detect WSL IP: {exc}") from exc
-

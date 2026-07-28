@@ -13,6 +13,7 @@ from udp_win_wsl_bridge.service import UDPBridgeService
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def make_service(**kwargs) -> UDPBridgeService:
     defaults = {
         "wsl_host": "127.0.0.1",
@@ -48,6 +49,7 @@ def make_mock_session(last_active: float | None = None) -> ClientSession:
 # track_task
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_track_task_removes_on_completion():
     svc = make_service()
@@ -67,6 +69,7 @@ async def test_track_task_removes_on_completion():
 # ---------------------------------------------------------------------------
 # forward_to_wsl – session limit
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_forward_rejects_when_session_limit_reached():
@@ -104,6 +107,7 @@ async def test_forward_allows_existing_client_at_limit():
 # ---------------------------------------------------------------------------
 # forward_to_wsl – session creation
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_forward_creates_new_session():
@@ -143,6 +147,7 @@ async def test_forward_drops_when_bridge_transport_not_ready():
 # ---------------------------------------------------------------------------
 # _create_session – retry logic
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_session_succeeds_after_retries():
@@ -189,6 +194,7 @@ async def test_create_session_returns_none_after_all_retries_fail():
 # _cleanup_session
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_cleanup_session_removes_and_closes():
     svc = make_service()
@@ -212,6 +218,7 @@ async def test_cleanup_session_is_idempotent():
 # ---------------------------------------------------------------------------
 # _cleanup_loop – idle detection
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_cleanup_loop_removes_stale_sessions():
@@ -238,6 +245,7 @@ async def test_cleanup_loop_removes_stale_sessions():
 # ---------------------------------------------------------------------------
 # shutdown / async_shutdown
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_cleanup_loop_keeps_active_sessions():
@@ -302,6 +310,7 @@ async def test_close_all_sessions_clears_everything():
 # ---------------------------------------------------------------------------
 # shutdown / async_shutdown
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_forward_drops_when_session_creation_fails():
@@ -386,6 +395,7 @@ async def test_start_binds_and_waits_for_shutdown():
         new_callable=AsyncMock,
         return_value=(mock_transport, MagicMock()),
     ):
+
         async def _trigger_shutdown():
             await asyncio.sleep(0.05)
             svc.shutdown()
@@ -398,6 +408,7 @@ async def test_start_binds_and_waits_for_shutdown():
 # ---------------------------------------------------------------------------
 # shutdown / async_shutdown
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_shutdown_cancels_cleanup_task():
@@ -447,6 +458,7 @@ async def test_async_shutdown_awaits_pending_tasks():
 # ---------------------------------------------------------------------------
 # ClientSession.refresh
 # ---------------------------------------------------------------------------
+
 
 def test_session_refresh_updates_last_active():
     session = make_mock_session()

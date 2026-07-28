@@ -12,6 +12,7 @@ from udp_win_wsl_bridge.config import BridgeConfig
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def make_args(**overrides) -> argparse.Namespace:
     defaults = {
         "wsl_host": None,
@@ -31,6 +32,7 @@ def make_args(**overrides) -> argparse.Namespace:
 # parse_args
 # ---------------------------------------------------------------------------
 
+
 def test_parse_args_defaults(monkeypatch):
     """parse_args must return correct defaults when no flags are passed."""
     monkeypatch.setattr("sys.argv", ["udp-bridge"])
@@ -47,17 +49,28 @@ def test_parse_args_defaults(monkeypatch):
 
 
 def test_parse_args_custom_values(monkeypatch):
-    monkeypatch.setattr("sys.argv", [
-        "udp-bridge",
-        "--wsl-host", "192.168.1.50",
-        "--listen-port", "6000",
-        "--wsl-port", "6001",
-        "--timeout", "10.0",
-        "--max-sessions", "500",
-        "--retry-attempts", "5",
-        "--retry-delay", "2.0",
-        "--log-level", "DEBUG",
-    ])
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "udp-bridge",
+            "--wsl-host",
+            "192.168.1.50",
+            "--listen-port",
+            "6000",
+            "--wsl-port",
+            "6001",
+            "--timeout",
+            "10.0",
+            "--max-sessions",
+            "500",
+            "--retry-attempts",
+            "5",
+            "--retry-delay",
+            "2.0",
+            "--log-level",
+            "DEBUG",
+        ],
+    )
     args = parse_args()
 
     assert args.wsl_host == "192.168.1.50"
@@ -73,6 +86,7 @@ def test_parse_args_custom_values(monkeypatch):
 # ---------------------------------------------------------------------------
 # create_config_from_args
 # ---------------------------------------------------------------------------
+
 
 def test_create_config_uses_explicit_wsl_host():
     args = make_args(wsl_host="10.0.0.1")
@@ -137,4 +151,3 @@ def test_create_config_exits_on_invalid_port():
     with pytest.raises(SystemExit) as exc_info:
         create_config_from_args(args)
     assert exc_info.value.code == 1
-

@@ -33,7 +33,7 @@ class UDPBridgeProtocol(asyncio.DatagramProtocol):
         self.transport = transport
         logger.info(
             "Listening on %s -> WSL %s:%s",
-            transport.get_extra_info('sockname'),
+            transport.get_extra_info("sockname"),
             self.service.wsl_host,
             self.service.wsl_port,
         )
@@ -115,7 +115,9 @@ class WSLProtocol(asyncio.DatagramProtocol):
         """
         bridge_transport = self.service.bridge_transport
         if bridge_transport is None or bridge_transport.is_closing():
-            logger.warning("Bridge transport unavailable, dropping WSL response for %s", self.client_addr)
+            logger.warning(
+                "Bridge transport unavailable, dropping WSL response for %s", self.client_addr
+            )
             return
 
         session = self.service.sessions.get(self.client_addr)
@@ -134,4 +136,3 @@ class WSLProtocol(asyncio.DatagramProtocol):
         :return: None
         """
         logger.error("WSL session error %s: %s", self.client_addr, exc)
-

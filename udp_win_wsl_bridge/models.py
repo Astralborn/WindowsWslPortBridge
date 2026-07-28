@@ -34,4 +34,3 @@ class ClientSession:
         :return: None
         """
         self.last_active = ts if ts is not None else time.time()
-

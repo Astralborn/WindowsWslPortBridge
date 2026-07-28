@@ -146,12 +146,17 @@ class UDPBridgeService:
                 if attempt == self.retry_attempts - 1:
                     logger.error(
                         "Failed to create session for %s after %d attempt(s): %s",
-                        client, self.retry_attempts, exc,
+                        client,
+                        self.retry_attempts,
+                        exc,
                     )
                     return None
                 logger.warning(
                     "Session creation attempt %d failed for %s: %s, retrying in %ss...",
-                    attempt + 1, client, exc, self.retry_delay,
+                    attempt + 1,
+                    client,
+                    exc,
+                    self.retry_delay,
                 )
                 await asyncio.sleep(self.retry_delay)
         return None
@@ -169,8 +174,7 @@ class UDPBridgeService:
             await asyncio.sleep(sleep_interval)
             now = time.time()
             stale = [
-                addr for addr, s in self.sessions.items()
-                if now - s.last_active > self.idle_timeout
+                addr for addr, s in self.sessions.items() if now - s.last_active > self.idle_timeout
             ]
             if stale:
                 await asyncio.gather(*[self._cleanup_session(addr) for addr in stale])
@@ -178,8 +182,10 @@ class UDPBridgeService:
             if self.sessions:
                 logger.debug(
                     "Active sessions: %d/%d, Total packets: %d sent, %d received",
-                    len(self.sessions), self.max_sessions,
-                    self.total_packets_forwarded, self.total_packets_received,
+                    len(self.sessions),
+                    self.max_sessions,
+                    self.total_packets_forwarded,
+                    self.total_packets_received,
                 )
 
     async def _cleanup_session(self, addr: ClientAddr) -> None:
@@ -203,9 +209,9 @@ class UDPBridgeService:
         :return: None
         """
         if self.sessions:
-            await asyncio.gather(*[
-                self._cleanup_session(addr) for addr in list(self.sessions.keys())
-            ])
+            await asyncio.gather(
+                *[self._cleanup_session(addr) for addr in list(self.sessions.keys())]
+            )
 
     def shutdown(self) -> None:
         """Signal the bridge to shut down.
@@ -246,10 +252,10 @@ class UDPBridgeService:
 
         logger.info(
             "Final stats: %d sessions created, %d packets sent, %d packets received",
-            self.total_sessions_created, self.total_packets_forwarded,
+            self.total_sessions_created,
+            self.total_packets_forwarded,
             self.total_packets_received,
         )
 
         if self.bridge_transport:
             self.bridge_transport.close()
-

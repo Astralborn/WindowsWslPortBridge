@@ -18,53 +18,31 @@ def parse_args() -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(
         description="UDP Windows-to-WSL Bridge",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("--wsl-host", help="WSL IP address (auto-detected if not specified)")
+    parser.add_argument("--listen-port", type=int, default=5060, help="Port to listen on Windows")
+    parser.add_argument("--wsl-port", type=int, default=5060, help="Target port in WSL")
+    parser.add_argument(
+        "--timeout", type=float, default=5.0, help="Session idle timeout in seconds"
     )
     parser.add_argument(
-        "--wsl-host",
-        help="WSL IP address (auto-detected if not specified)"
-    )
-    parser.add_argument(
-        "--listen-port",
-        type=int,
-        default=5060,
-        help="Port to listen on Windows"
-    )
-    parser.add_argument(
-        "--wsl-port",
-        type=int,
-        default=5060,
-        help="Target port in WSL"
-    )
-    parser.add_argument(
-        "--timeout",
-        type=float,
-        default=5.0,
-        help="Session idle timeout in seconds"
-    )
-    parser.add_argument(
-        "--max-sessions",
-        type=int,
-        default=1000,
-        help="Maximum concurrent sessions"
+        "--max-sessions", type=int, default=1000, help="Maximum concurrent sessions"
     )
     parser.add_argument(
         "--retry-attempts",
         type=int,
         default=3,
-        help="Maximum connection attempts per session (must be >= 1)"
+        help="Maximum connection attempts per session (must be >= 1)",
     )
     parser.add_argument(
-        "--retry-delay",
-        type=float,
-        default=1.0,
-        help="Delay between retries (seconds)"
+        "--retry-delay", type=float, default=1.0, help="Delay between retries (seconds)"
     )
     parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
-        help="Logging level"
+        help="Logging level",
     )
 
     return parser.parse_args()
@@ -108,4 +86,3 @@ def create_config_from_args(args: argparse.Namespace) -> BridgeConfig:
     except ValueError as exc:
         logger.error("Invalid configuration value: %s", exc)
         sys.exit(1)
-

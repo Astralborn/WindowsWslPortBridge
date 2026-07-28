@@ -14,6 +14,7 @@ from udp_win_wsl_bridge.utils import detect_wsl_ip
 # BridgeConfig.validate
 # ---------------------------------------------------------------------------
 
+
 def make_valid_config(**overrides) -> BridgeConfig:
     defaults = {
         "wsl_host": "127.0.0.1",
@@ -80,6 +81,7 @@ def test_zero_retry_delay_is_valid():
 # detect_wsl_ip
 # ---------------------------------------------------------------------------
 
+
 def test_detect_wsl_ip_returns_first_ip():
     mock_result = MagicMock()
     mock_result.stdout = "172.25.224.1 172.25.224.2\n"
@@ -89,7 +91,9 @@ def test_detect_wsl_ip_returns_first_ip():
 
 
 def test_detect_wsl_ip_raises_on_timeout():
-    with patch("udp_win_wsl_bridge.utils.subprocess.run", side_effect=subprocess.TimeoutExpired("wsl", 10)):
+    with patch(
+        "udp_win_wsl_bridge.utils.subprocess.run", side_effect=subprocess.TimeoutExpired("wsl", 10)
+    ):
         with pytest.raises(RuntimeError, match="timed out"):
             detect_wsl_ip()
 
@@ -154,4 +158,3 @@ def test_setup_logging_accepts_valid_levels(level):
         assert root.level == getattr(logging, level)
     finally:
         root.handlers = original_handlers
-

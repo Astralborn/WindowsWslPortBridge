@@ -63,7 +63,9 @@ async def main() -> None:
         retry_delay=config.retry_delay,
     )
 
-    logger.info("Starting UDP bridge: %d -> %s:%d", config.listen_port, config.wsl_host, config.wsl_port)
+    logger.info(
+        "Starting UDP bridge: %d -> %s:%d", config.listen_port, config.wsl_host, config.wsl_port
+    )
 
     def _request_shutdown(sig: int, _frame: object) -> None:
         logger.info("Received signal %d, shutting down…", sig)
@@ -78,7 +80,10 @@ async def main() -> None:
         await service.start()
     except OSError as exc:
         if sys.platform == "win32" and getattr(exc, "winerror", None) == 10048:
-            logger.error("Port %d is already in use. Check if another instance is running.", config.listen_port)
+            logger.error(
+                "Port %d is already in use. Check if another instance is running.",
+                config.listen_port,
+            )
         else:
             logger.error("OS error: %s", exc)
     except asyncio.CancelledError:

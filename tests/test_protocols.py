@@ -12,6 +12,7 @@ from udp_win_wsl_bridge.protocols import UDPBridgeProtocol, WSLProtocol
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def make_mock_transport() -> MagicMock:
     t = MagicMock(spec=asyncio.DatagramTransport)
     t.sendto = MagicMock()
@@ -43,6 +44,7 @@ def make_mock_session() -> ClientSession:
 # ---------------------------------------------------------------------------
 # UDPBridgeProtocol
 # ---------------------------------------------------------------------------
+
 
 def test_bridge_protocol_connection_made_stores_transport():
     svc = make_mock_service()
@@ -78,6 +80,7 @@ def test_bridge_protocol_error_received_does_not_raise():
 # ---------------------------------------------------------------------------
 # WSLProtocol
 # ---------------------------------------------------------------------------
+
 
 def test_wsl_protocol_connection_made_stores_transport():
     svc = make_mock_service()
@@ -168,4 +171,3 @@ def test_wsl_protocol_error_received_does_not_raise():
     svc = make_mock_service()
     proto = WSLProtocol(("1.2.3.4", 1000), svc.bridge_transport, svc)
     proto.error_received(OSError("network unreachable"))
-
