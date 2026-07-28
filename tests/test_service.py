@@ -6,24 +6,23 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from udp_win_wsl_bridge.service import UDPBridgeService
 from udp_win_wsl_bridge.models import ClientSession
-
+from udp_win_wsl_bridge.service import UDPBridgeService
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 def make_service(**kwargs) -> UDPBridgeService:
-    defaults = dict(
-        wsl_host="127.0.0.1",
-        listen_port=15060,
-        wsl_port=15061,
-        idle_timeout=5.0,
-        max_sessions=10,
-        retry_attempts=3,
-        retry_delay=0.0,
-    )
+    defaults = {
+        "wsl_host": "127.0.0.1",
+        "listen_port": 15060,
+        "wsl_port": 15061,
+        "idle_timeout": 5.0,
+        "max_sessions": 10,
+        "retry_attempts": 3,
+        "retry_delay": 0.0,
+    }
     defaults.update(kwargs)
     return UDPBridgeService(**defaults)
 

@@ -60,9 +60,9 @@ async def main() -> None:
 
     :return: None
     """
-    from .cli import parse_args, create_config_from_args
+    from .cli import create_config_from_args, parse_args
+    from .logging_utils import log, setup_logging
     from .service import UDPBridgeService
-    from .logging_utils import setup_logging, log
 
     args = parse_args()
 

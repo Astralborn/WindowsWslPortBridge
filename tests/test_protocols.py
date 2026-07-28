@@ -1,13 +1,12 @@
 """Tests for UDPBridgeProtocol and WSLProtocol."""
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from udp_win_wsl_bridge.protocols import UDPBridgeProtocol, WSLProtocol
 from udp_win_wsl_bridge.models import ClientSession
-
+from udp_win_wsl_bridge.protocols import UDPBridgeProtocol, WSLProtocol
 
 # ---------------------------------------------------------------------------
 # Helpers
