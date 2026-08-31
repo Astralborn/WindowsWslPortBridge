@@ -1,7 +1,6 @@
-# 🚀 UDP Windows-to-WSL Port Bridge
+# UDP Windows-to-WSL Port Bridge
 
-> A production-ready async UDP bridge enabling seamless communication between Windows
-> and WSL with enterprise-grade features.
+> Async UDP bridge that forwards packets between Windows and WSL2.
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Asyncio](https://img.shields.io/badge/asyncio-3776AB?style=flat-square&logo=python&logoColor=white)
@@ -11,44 +10,23 @@
 
 ------------------------------------------------------------------------
 
-## 📌 Overview
+## 📌 What Is This?
 
-Windows provides a built-in TCP port proxy:
+Windows has a built-in TCP port proxy (`netsh interface portproxy`), but it **does not
+support UDP**. This project fills that gap.
 
-```bash
-netsh interface portproxy
-```
+**WindowsWslPortBridge** listens for UDP packets on a Windows port, forwards them to a
+service inside WSL2, and relays responses back to the original sender. Each client gets
+its own dedicated outbound socket so multiple concurrent flows never interfere with each
+other.
 
-However, **UDP is not supported**.
-
-This project implements a **UDP port bridge** using Python and `asyncio`,
-allowing Windows applications to communicate with UDP services running inside WSL.
-
-------------------------------------------------------------------------
-
-## 📝 Summary
-
-**WindowsWslPortBridge** is a lightweight, production-ready UDP proxy written entirely
-in Python. It was built to solve a real gap in the Windows networking stack — `netsh
-interface portproxy` only supports TCP, leaving UDP without a native solution.
-
-### What it does
-The bridge listens for incoming UDP packets on a Windows port, creates a dedicated
-per-client outbound socket into WSL, forwards the packet, and relays the response back
-to the original sender. Each client gets its own isolated session so multiple concurrent
-flows never interfere with each other.
-
-
-### Test suite
-Key scenarios covered: concurrent session creation race condition, retry exhaustion,
-idle session cleanup, graceful shutdown, stale transport handling, and all CLI error paths.
+It is written entirely in Python using `asyncio`, with zero external runtime dependencies.
 
 ------------------------------------------------------------------------
 
 ## 📋 Table of Contents
 
-- [📌 Overview](#-overview)
-- [📝 Summary](#-summary)
+- [📌 What Is This?](#-what-is-this)
 - [✨ Features](#-features)
 - [🎬 Quick Demo](#-quick-demo)
 - [🏗 Architecture](#-architecture)
@@ -68,19 +46,15 @@ idle session cleanup, graceful shutdown, stale transport handling, and all CLI e
 
 ## ✨ Features
 
-- 🔄 UDP forwarding (Windows → WSL)
-- ⚡ Fully asynchronous (`asyncio`)
-- 👥 Per-client session isolation
-- 🧹 Automatic idle session cleanup
-- 📦 Zero external dependencies
-- 🧵 Supports concurrent UDP clients
-- 🪶 Lightweight & efficient
-- 🛡️ DoS protection (session limits)
-- 🔁 Connection retry logic
-- 📊 Session statistics & monitoring
-- 📝 Structured logging with levels
-- ✅ Configuration validation
-- 🪟 Windows-optimized (Ctrl+C graceful shutdown)
+- **UDP forwarding** — Windows → WSL2 and back
+- **Fully async** — single-threaded `asyncio`, handles many clients concurrently
+- **Per-client sessions** — each client gets its own WSL-bound socket to prevent packet mixing
+- **Idle cleanup** — stale sessions are automatically removed on a timer
+- **DoS protection** — configurable max session limit
+- **Retry logic** — automatic retries when creating WSL connections
+- **Zero dependencies** — only Python standard library at runtime
+- **Graceful shutdown** — Ctrl+C cleanly closes all sessions and prints final stats
+- **Structured logging** — configurable log levels with per-session detail
 
 ------------------------------------------------------------------------
 
@@ -131,15 +105,9 @@ flowchart LR
     P2 <-->|UDP| SVC
     PN <-->|UDP| SVC
 
-    SVC -.->|response| P1
-    P1 -.->|bridge_transport.sendto| L
-    SVC -.->|response| P2
-    P2 -.->|bridge_transport.sendto| L
-    SVC -.->|response| PN
-    PN -.->|bridge_transport.sendto| L
-    L -.->|relay| C1
-    L -.->|relay| C2
-    L -.->|relay| CN
+    L -.->|relay response| C1
+    L -.->|relay response| C2
+    L -.->|relay response| CN
 ```
 
 ------------------------------------------------------------------------
