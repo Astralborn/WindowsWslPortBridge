@@ -190,7 +190,6 @@ This bridge uses only Python standard library modules — no third-party package
 ```
 WindowsWslPortBridge/
 ├── .github/workflows/ci.yml        ← CI pipeline (lint, typecheck, test)
-├── .pre-commit-config.yaml         ← pre-commit hooks (ruff)
 ├── .gitignore
 ├── AGENTS.md                       ← AI agent instructions
 ├── LICENSE
