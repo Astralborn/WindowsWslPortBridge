@@ -2,11 +2,8 @@
 
 > Async UDP bridge that forwards packets between Windows and WSL2.
 
-![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
-![Asyncio](https://img.shields.io/badge/asyncio-3776AB?style=flat-square&logo=python&logoColor=white)
-![Platform](https://img.shields.io/badge/Windows%20%2B%20WSL-0078D4?style=flat-square&logo=windows&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square&logo=opensourceinitiative&logoColor=white)
-![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=flat-square&logo=pytest&logoColor=white)
+[![CI](https://github.com/astralborn/WindowsWslPortBridge/actions/workflows/ci.yml/badge.svg)](https://github.com/astralborn/WindowsWslPortBridge/actions/workflows/ci.yml)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
 ------------------------------------------------------------------------
 
